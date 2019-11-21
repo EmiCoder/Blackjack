@@ -15,7 +15,6 @@ public class TicTacToeButton extends Button {
     public void changeStateWithPlayerMove() {
         if (this.value == 0) {
             this.setState(1);
-            System.out.println(value);
         } else {
             System.out.println("illegal player move");
         }
@@ -24,7 +23,6 @@ public class TicTacToeButton extends Button {
     public void changeStateWithComputerMove() {
         if (this.value == 0) {
             this.setState(-1);
-            System.out.println(value);
         } else {
             System.out.println("illegal computer move");
         }

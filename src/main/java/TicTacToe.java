@@ -31,7 +31,7 @@ import java.util.Random;
 public class TicTacToe extends Application {
 
     private Image backgroundImage = new Image("backgroundAngryBirds.png");
-    private ImageView playerImage;
+    private ImageView playerImage = new ImageView("red.png");
 
     private TicTacToeButton [][] buttons = new TicTacToeButton[3][3];
 
