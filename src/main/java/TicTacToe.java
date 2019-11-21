@@ -2,6 +2,7 @@
 import javafx.application.Application;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -10,21 +11,41 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 
 public class TicTacToe extends Application {
 
     private Image backgroundImage = new Image("backgroundAngryBirds.png");
-
     private ImageView playerImage;
-    private ImageView computerImage = new ImageView("pig.png");
 
     private TicTacToeButton [][] buttons = new TicTacToeButton[3][3];
 
     private Button button;
+
+    private Text messageRound= new Text();
+    private Text messagePlayerPoints = new Text();
+    private Text messageComputerPlayerPoints = new Text();
+
+    private StackPane stackPaneRound= new StackPane();
+    private StackPane stackPanePlayerPoints = new StackPane();
+    private StackPane stackPaneComputerPoints = new StackPane();
+    private StackPane playerFinalStackPane = new StackPane();
+    private StackPane computerFinalStackPane = new StackPane();
 
     GridPane grid;
 
@@ -36,13 +57,12 @@ public class TicTacToe extends Application {
     private final int startOfColumns = 2;
     private final int endOfColumns = 5;
 
-    private int counter = 0;
-    private int amountOfRoundsToWin= 1;
-    private int amountOfWonPlayerRounds = 0;
-    private int amountOfWonComputerRounds = 0;
-    private boolean playerFirst = true;
-    private SimpleBooleanProperty playable = new SimpleBooleanProperty(false);
+    private int roundsCounter = 1;
+    private int amountOfRounds = 1;
+    private int playerPoints= 0;
+    private int computerPoints= 0;
 
+    private SimpleBooleanProperty playable = new SimpleBooleanProperty(false);
 
     public static void main(String[] args) {
         launch(args);
@@ -50,19 +70,33 @@ public class TicTacToe extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        primaryStage.setScene(new Scene(setScene(), 600, 600));
+        primaryStage.setTitle("Bird VS Bird");
+        primaryStage.show();
+ }
 
-        BackgroundSize backgroundSize = new BackgroundSize(100, 100, true, true, true, false);
-        BackgroundImage backgroundImage = new BackgroundImage(this.backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, backgroundSize);
-        Background background = new Background(backgroundImage);
-
-        grid = new GridPane();
-        grid.setBackground(background);
+    private GridPane setScene() {
+        grid = prepareGrid();
+        fillTheGridWithRowsAndColumn();
+        setButtonsGrid();
+        prepareMenuBar();
+        prepareRoundStack();
+        preparePlayerAndComputerPointsStack();
 
 //        grid.setGridLinesVisible(true);
-        grid.setVgap(5);
-        grid.setHgap(5);
-        grid.setPadding(new Insets(5,5,5,5));
+        return grid;
+    }
 
+    private GridPane prepareGrid() {
+        GridPane gp = new GridPane();
+        gp.setVgap(5);
+        gp.setHgap(5);
+        gp.setPadding(new Insets(5,5,5,5));
+        gp.setBackground(setStageBackground());
+        return gp;
+    }
+
+    private void fillTheGridWithRowsAndColumn() {
         for (int i = 0; i < 7; i++) {
             column= new ColumnConstraints();
             column.setPercentWidth(15);
@@ -71,179 +105,139 @@ public class TicTacToe extends Application {
             grid.getColumnConstraints().add(i, column);
             grid.getRowConstraints().add(i, row);
         }
+    }
 
-//        for (int i = startOfRows; i < endOfRows; i++) {
-//                for (int j = startOfColumns; j < endOfColumns; j++) {
-//                    button = new TicTacToeButton();
-//                    button.setPrefSize(70, 70);
-//                    button.setStyle("-fx-background-color: #FFC0CB");
-//                    button.setOnAction(event -> {
-//                        TicTacToeButton button = (TicTacToeButton) event.getSource();
-//                        if (counter % 2 == 0) {
-//                            button.setGraphic(new ImageView(playerImage.getImage()));
-//                            button.changeStateWithPlayerMove();
-//                            counter++;
-//                        } else {
-//                            button.setGraphic(new ImageView(computerImage.getImage()));
-//                            button.changeStateWithComputerMove();
-//                            counter++;
-//                        }
-//
-//                    });
-//
-//
-//                        GridPane.setConstraints(button,j, i);
-//                        GridPane.setHalignment(button, HPos.CENTER);
-//                        grid.getChildren().add(button);
-//
-//                        buttons[i - 1][j - 2] = (TicTacToeButton) button;
-//                }
-//        }
+    private Background setStageBackground() {
+        BackgroundSize backgroundSize = new BackgroundSize(100, 100, true, true, true, false);
+        BackgroundImage backgroundImage = new BackgroundImage(this.backgroundImage, BackgroundRepeat.REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, backgroundSize);
+        return new Background(backgroundImage);
+    }
 
-        for (int i = startOfRows; i < endOfRows; i++) {
-            for (int j=startOfColumns; j < endOfColumns; j++) {
-                button=new TicTacToeButton();
-                button.setPrefSize(70, 70);
-                button.setStyle("-fx-background-color: #FFC0CB");
-                button.setOnAction(event -> {
-                    TicTacToeButton button=(TicTacToeButton) event.getSource();
-                    if (counter % 2 == 0) {
-                        button.setGraphic(new ImageView(playerImage.getImage()));
-                        button.changeStateWithPlayerMove();
-                        if (checkTheResult(3)) {
-                            amountOfWonPlayerRounds++;
-                            System.out.println("player won " + amountOfWonPlayerRounds);
+    private void prepareMenuBar() {
+        MenuBar menuBar=new MenuBar();
+        menuBar.setMinWidth(600);
+        menuBar.setMinHeight(50);
+        menuBar.setTranslateX(-5);
+        menuBar.setTranslateY(-5);
+        menuBar.setStyle("-fx-background-color: #8B0000; -fx-text-fill: #FFFFFF");
+        menuBar.setPadding(new Insets(15));
 
-                            if (amountOfWonPlayerRounds == amountOfRoundsToWin) {
-                                System.out.println("You won!!!");
-                            } else {
-                                amountOfWonPlayerRounds=0;
-                            }
-                        }
-                    } else {
-                        button.setGraphic(new ImageView(computerImage.getImage()));
-                        button.changeStateWithComputerMove();
-                        if (checkTheResult(-3)) {
-                            amountOfWonComputerRounds++;
-                            System.out.println("computer won " + amountOfWonComputerRounds);
-
-                            if (amountOfWonComputerRounds == amountOfRoundsToWin) {
-                                System.out.println("computer won!!!");
-                            } else {
-                                amountOfWonComputerRounds=0;
-                            }
-                        }
-                    }
-                    counter++;
-                });
-            }}
-
-                MenuBar menuBar=new MenuBar();
-                menuBar.setMinWidth(600);
-                menuBar.setMinHeight(50);
-                menuBar.setTranslateX(-5);
-                menuBar.setTranslateY(-5);
-                menuBar.setStyle("-fx-background-color: c70029; -fx-text-fill: #FFFFFF");
-                menuBar.setPadding(new Insets(15));
-
-
-                Menu menu1=new Menu("Choose your character");
-                MenuItem menuItem1=new MenuItem("Red");
-                menuItem1.setGraphic(new ImageView("red.png"));
-                MenuItem menuItem2=new MenuItem("Matilda");
-                menuItem2.setGraphic(new ImageView("matildaS.png"));
-                MenuItem menuItem3=new MenuItem("Bomb");
-                menuItem3.setGraphic(new ImageView("bomgS.png"));
-                MenuItem menuItem4=new MenuItem("Chuck");
-                menuItem4.setGraphic(new ImageView("chuckS.png"));
-
-                menuItem1.setOnAction(e -> {
-                    if (playable.getValue()) {
-                        playerImage=new ImageView("red.png");
-                    }
-                });
-                menuItem2.setOnAction(e -> {
-                    if (playable.getValue()) {
-                        playerImage=new ImageView("matildaS.png");
-                    }
-                });
-                menuItem3.setOnAction(e -> {
-                    if (playable.getValue()) {
-                        playerImage=new ImageView("bomgS.png");
-                    }
-                });
-                menuItem4.setOnAction(e -> {
-                    if (playable.getValue()) {
-                        playerImage=new ImageView("chuckS.png");
-                    }
-                });
-                menu1.getItems().addAll(menuItem1, menuItem2, menuItem3, menuItem4);
-
-
-                Menu menu2=new Menu("How many rounds?");
-                MenuItem item1=new MenuItem("1");
-                MenuItem item2=new MenuItem("2");
-                MenuItem item3=new MenuItem("3");
-                MenuItem item4=new MenuItem("4");
-                MenuItem item5=new MenuItem("5");
-                item1.setOnAction(event -> {
-                    if (playable.getValue()) {
-                        amountOfRoundsToWin=1;
-                    }
-                });
-                item2.setOnAction(event -> {
-                    if (playable.getValue()) {
-                        amountOfRoundsToWin=2;
-                    }
-                });
-                item3.setOnAction(event -> {
-                    if (playable.getValue()) {
-                        amountOfRoundsToWin=3;
-                    }
-                });
-                item4.setOnAction(event -> {
-                    if (playable.getValue()) {
-                        amountOfRoundsToWin=4;
-                    }
-                });
-                item5.setOnAction(event -> {
-                    if (playable.getValue()) {
-                        amountOfRoundsToWin=5;
-                    }
-                });
-                menu2.getItems().addAll(item1, item2, item3, item4, item5);
-
-
-                Menu menu3=new Menu("Who starts?");
-                MenuItem itemOne=new MenuItem("Player");
-                MenuItem itemTwo=new MenuItem("Computer");
-                itemTwo.setOnAction(event -> playerFirst=false);
-                menu3.getItems().addAll(itemOne, itemTwo);
-
-                Menu menu4=new Menu("Play");
-                MenuItem i1=new MenuItem("Start");
-                MenuItem i2=new MenuItem("New Game");
-                i1.setOnAction(event -> playable.set(true));
-                i2.setOnAction(event -> {
-                    resetTheGame();
-                });
-                menu4.getItems().addAll(i1, i2);
-
-                menuBar.getMenus().addAll(menu1, menu2, menu3, menu4);
-
-                VBox vBox=new VBox(menuBar);
-
-                grid.getChildren().add(vBox);
-
-                Scene scene=new Scene(grid, 600, 600);
-                primaryStage.setTitle("Tic Tac Toe");
-                primaryStage.setScene(scene);
-                primaryStage.show();
+        Menu menu1=new Menu("Choose your character");
+        MenuItem menuItem1=new MenuItem("Red");
+        menuItem1.setGraphic(new ImageView("red.png"));
+        menuItem1.setOnAction(e -> {
+            if (playable.getValue()) {
+                playerImage = new ImageView("red.png");
             }
+        });
+        MenuItem menuItem2=new MenuItem("Matilda");
+        menuItem2.setGraphic(new ImageView("matildaS.png"));
+        menuItem2.setOnAction(e -> {
+            if (playable.getValue()) {
+                playerImage = new ImageView("matildaS.png");
+            }
+        });
+        MenuItem menuItem3=new MenuItem("Bomb");
+        menuItem3.setGraphic(new ImageView("bombS2.png"));
+        menuItem3.setOnAction(e -> {
+            if (playable.getValue()) {
+                playerImage=new ImageView("bombS2.png");
+            }
+        });
+        MenuItem menuItem4=new MenuItem("Chuck");
+        menuItem4.setGraphic(new ImageView("chuckS2.png"));
+        menuItem4.setOnAction(e -> {
+            if (playable.getValue()) {
+                playerImage=new ImageView("chuckS2.png");
+            }
+        });
 
+        menu1.getItems().addAll(menuItem1, menuItem2,menuItem3, menuItem4);
 
+        Menu menu2=new Menu("How many rounds?");
+        MenuItem item1=new MenuItem("1");
+        item1.setOnAction(event -> {
+            if (playable.getValue()) {
+                amountOfRounds=1;
+            }
+        });
+        MenuItem item2=new MenuItem("2");
+        item2.setOnAction(event -> {
+            if (playable.getValue()) {
+                amountOfRounds=2;
+            }
+        });
+        MenuItem item3=new MenuItem("3");
+        item3.setOnAction(event -> {
+            if (playable.getValue()) {
+                amountOfRounds=3;
+            }
+        });
+        MenuItem item4=new MenuItem("4");
+        item4.setOnAction(event -> {
+            if (playable.getValue()) {
+                amountOfRounds=4;
+            }
+        });
+        MenuItem item5=new MenuItem("5");
+        item5.setOnAction(event -> {
+            if (playable.getValue()) {
+                amountOfRounds=5;
+            }
+        });
 
+        menu2.getItems().addAll(item1, item2, item3, item4, item5);
 
+        Menu menu3=new Menu("Play");
+        MenuItem i1=new MenuItem("Start");
+        i1.setOnAction(event -> playable.set(true));
+        MenuItem i2=new MenuItem("New Game");
+        i2.setOnAction(event -> {
+            resetTheGame();
+        });
+        menu3.getItems().addAll(i1, i2);
+
+        menuBar.getMenus().addAll(menu1, menu2, menu3);
+        grid.getChildren().addAll(menuBar);
+    }
+
+    private void prepareRoundStack() {
+        stackPaneRound.setTranslateY(70);
+        messageRound.setText("Round " + roundsCounter);
+        messageRound.setTextAlignment(TextAlignment.CENTER);
+        messageRound.setFill(Color.WHITE);
+
+        Rectangle rectangle = new Rectangle(145, 40);
+        rectangle.setFill(Color.DARKRED);
+        rectangle.setTranslateX(10);
+        stackPaneRound.getChildren().addAll(rectangle, messageRound);
+
+        grid.getChildren().add(stackPaneRound);
+    }
+
+    private void preparePlayerAndComputerPointsStack() {
+        stackPanePlayerPoints.setTranslateY(70);
+        stackPanePlayerPoints.setTranslateX(435);
+
+        messagePlayerPoints.setText("Player points: " + String.valueOf(playerPoints));
+        messagePlayerPoints.setFill(Color.WHITE);
+
+        Rectangle playerRectangle = new Rectangle(145, 40);
+        playerRectangle.setFill(Color.DARKRED);
+        stackPanePlayerPoints.getChildren().addAll(playerRectangle, messagePlayerPoints);
+
+        stackPaneComputerPoints.setTranslateY(125);
+        stackPaneComputerPoints.setTranslateX(435);
+
+        messageComputerPlayerPoints.setText("Computer points: " + String.valueOf(computerPoints));
+        messageComputerPlayerPoints.setFill(Color.WHITE);
+
+        Rectangle computerRectangle = new Rectangle(145, 40);
+        computerRectangle.setFill(Color.DARKRED);
+
+        stackPaneComputerPoints.getChildren().addAll(computerRectangle, messageComputerPlayerPoints);
+        grid.getChildren().addAll(stackPanePlayerPoints, stackPaneComputerPoints);
+    }
 
     private void resetTheGame() {
         playable.set(false);
@@ -255,10 +249,127 @@ public class TicTacToe extends Application {
             if (node instanceof TicTacToeButton) {
                 ((TicTacToeButton) node).setState(0);
                 ((TicTacToeButton) node).setGraphic(null);
-                counter = 0;
-                System.out.println("counter ot" + counter);
             }
         }
+        messageRound.setText("Round: " + roundsCounter);
+    }
+
+    private void setButtonsGrid() {
+        for (int i = startOfRows; i < endOfRows; i++) {
+            for (int j = startOfColumns; j < endOfColumns; j++) {
+                button = new TicTacToeButton();
+                button.setPrefSize(70, 70);
+                button.setStyle("-fx-background-color: #FFC0CB");
+                button.setOnAction(event -> {
+                    if (playable.getValue()) {
+                            TicTacToeButton button = (TicTacToeButton) event.getSource();
+                            button.setGraphic(new ImageView(playerImage.getImage()));
+                            button.changeStateWithPlayerMove();
+                            if (checkTheResult(3)) {
+                                playerWon();
+                            }  else if (filledBoard()) {
+                                roundsCounter++;
+                                resetTheButtons();
+                            } else {
+                                setTheComputerMove();
+                                if (checkTheResult(-3)) {
+                                    computerWon();
+                                }
+                            }
+                        }
+                });
+
+                GridPane.setConstraints(button,j, i);
+                GridPane.setHalignment(button, HPos.CENTER);
+                grid.getChildren().add(button);
+
+                buttons[i - 1][j - 2] = (TicTacToeButton) button;
+            }
+        }
+    }
+
+    private void playerWon() {
+            playerPoints++;
+            messagePlayerPoints.setText("Player points: " +String.valueOf(playerPoints));
+            if (roundsCounter == amountOfRounds && playerPoints > computerPoints) {
+                playerFinal();
+                resetTheGame();
+            } else if (roundsCounter == amountOfRounds && playerPoints == computerPoints) {
+                System.out.println("Nobody won :/");
+                resetTheGame();
+            } else {
+                roundsCounter++;
+                resetTheButtons();
+            }
+        }
+
+    private void playerFinal() {
+        playerFinalStackPane.setTranslateY(300);
+        playerFinalStackPane.setTranslateX(30);
+
+        ImageView winnerImage = new ImageView("winner.png");
+
+        AudioClip sound = new AudioClip(this.getClass().getResource("winningSound.mp3").toString());
+        sound.play();
+
+        playerFinalStackPane.getChildren().add(winnerImage);
+        grid.getChildren().add(playerFinalStackPane);
+    }
+
+    private void computerWon() {
+        computerPoints++;
+        messageComputerPlayerPoints.setText("Computer points: " + String.valueOf(computerPoints));
+        if (roundsCounter == amountOfRounds && playerPoints < computerPoints) {
+            computerFinal();
+            resetTheGame();
+        } else if (roundsCounter == amountOfRounds && playerPoints == computerPoints) {
+            System.out.println("Nobody won :/");
+            resetTheGame();
+        } else {
+            roundsCounter++;
+            resetTheButtons();
+        }
+    }
+
+    private void computerFinal() {
+        computerFinalStackPane.setTranslateY(300);
+        computerFinalStackPane.setTranslateX(30);
+
+        ImageView winnerImage = new ImageView("winnerComputer.png");
+
+        AudioClip sound = new AudioClip(this.getClass().getResource("booSound.mp3").toString());
+        sound.play();
+
+        computerFinalStackPane.getChildren().add(winnerImage);
+        grid.getChildren().add(computerFinalStackPane);
+    }
+
+    private void setTheComputerMove() {
+        List<TicTacToeButton> list = new ArrayList<>();
+
+        for (Node node : grid.getChildren()) {
+            if (node instanceof TicTacToeButton) {
+                if (((TicTacToeButton) node).getValue() == 0) {
+                    list.add((TicTacToeButton)node);
+                }
+            }
+        }
+        Random nodeGenerator = new Random();
+        TicTacToeButton button = list.get(nodeGenerator.nextInt(list.size()));
+        button.setGraphic(new ImageView("pig.png"));
+        button.changeStateWithComputerMove();
+    }
+
+    private boolean filledBoard() {
+        ObservableList<Node> childrens = grid.getChildren();
+        for (Node node : childrens) {
+            if (node instanceof TicTacToeButton) {
+                if (((TicTacToeButton) node).getValue() == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public boolean checkTheResult(int expectedResult) {
