@@ -42,11 +42,12 @@ public class MainMenu {
         Menu rounds = new Menu("ROUNDS");
                 rounds.setGraphic(new ImageView("roundS.png"));
                 for (int i = 0; i < 5; i++) {
+                    int tmp = i;
                     MenuItem item = new MenuItem(String.valueOf(i + 1));
                     item.setGraphic(new ImageView("roundItem.png"));
                     item.setOnAction(event -> {
                         if (TicTacToe.playable.getValue()) {
-                            TicTacToe.amountOfRounds=1;
+                            TicTacToe.amountOfRounds = tmp + 1;
                         }
                     });
                     rounds.getItems().add(item);

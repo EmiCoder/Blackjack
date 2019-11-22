@@ -52,7 +52,7 @@ public class TicTacToe extends Application {
     private final int endOfColumns = 5;
 
     private int roundsCounter = 1;
-    protected static int amountOfRounds = 1;
+    public static int amountOfRounds = 1;
     private int playerPoints= 0;
     private int computerPoints= 0;
 
