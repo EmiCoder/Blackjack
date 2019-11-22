@@ -7,13 +7,9 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.media.AudioClip;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
@@ -21,8 +17,6 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -31,7 +25,7 @@ import java.util.Random;
 public class TicTacToe extends Application {
 
     private Image backgroundImage = new Image("backgroundAngryBirds.png");
-    private ImageView playerImage = new ImageView("red.png");
+    protected static ImageView playerImage = new ImageView("red.png");
 
     private TicTacToeButton [][] buttons = new TicTacToeButton[3][3];
 
@@ -47,7 +41,7 @@ public class TicTacToe extends Application {
     private StackPane playerFinalStackPane = new StackPane();
     private StackPane computerFinalStackPane = new StackPane();
 
-    GridPane grid;
+    protected static GridPane grid;
 
     private ColumnConstraints column;
     private RowConstraints row;
@@ -58,11 +52,11 @@ public class TicTacToe extends Application {
     private final int endOfColumns = 5;
 
     private int roundsCounter = 1;
-    private int amountOfRounds = 1;
+    protected static int amountOfRounds = 1;
     private int playerPoints= 0;
     private int computerPoints= 0;
 
-    private SimpleBooleanProperty playable = new SimpleBooleanProperty(false);
+    protected static SimpleBooleanProperty playable = new SimpleBooleanProperty(false);
 
     public static void main(String[] args) {
         launch(args);
@@ -114,91 +108,7 @@ public class TicTacToe extends Application {
     }
 
     private void prepareMenuBar() {
-        MenuBar menuBar=new MenuBar();
-        menuBar.setMinWidth(600);
-        menuBar.setMinHeight(50);
-        menuBar.setTranslateX(-5);
-        menuBar.setTranslateY(-5);
-        menuBar.setStyle("-fx-background-color: #8B0000; -fx-text-fill: #FFFFFF");
-        menuBar.setPadding(new Insets(15));
-
-        Menu menu1=new Menu("Choose your character");
-        MenuItem menuItem1=new MenuItem("Red");
-        menuItem1.setGraphic(new ImageView("red.png"));
-        menuItem1.setOnAction(e -> {
-            if (playable.getValue()) {
-                playerImage = new ImageView("red.png");
-            }
-        });
-        MenuItem menuItem2=new MenuItem("Matilda");
-        menuItem2.setGraphic(new ImageView("matildaS.png"));
-        menuItem2.setOnAction(e -> {
-            if (playable.getValue()) {
-                playerImage = new ImageView("matildaS.png");
-            }
-        });
-        MenuItem menuItem3=new MenuItem("Bomb");
-        menuItem3.setGraphic(new ImageView("bombS2.png"));
-        menuItem3.setOnAction(e -> {
-            if (playable.getValue()) {
-                playerImage=new ImageView("bombS2.png");
-            }
-        });
-        MenuItem menuItem4=new MenuItem("Chuck");
-        menuItem4.setGraphic(new ImageView("chuckS2.png"));
-        menuItem4.setOnAction(e -> {
-            if (playable.getValue()) {
-                playerImage=new ImageView("chuckS2.png");
-            }
-        });
-
-        menu1.getItems().addAll(menuItem1, menuItem2,menuItem3, menuItem4);
-
-        Menu menu2=new Menu("How many rounds?");
-        MenuItem item1=new MenuItem("1");
-        item1.setOnAction(event -> {
-            if (playable.getValue()) {
-                amountOfRounds=1;
-            }
-        });
-        MenuItem item2=new MenuItem("2");
-        item2.setOnAction(event -> {
-            if (playable.getValue()) {
-                amountOfRounds=2;
-            }
-        });
-        MenuItem item3=new MenuItem("3");
-        item3.setOnAction(event -> {
-            if (playable.getValue()) {
-                amountOfRounds=3;
-            }
-        });
-        MenuItem item4=new MenuItem("4");
-        item4.setOnAction(event -> {
-            if (playable.getValue()) {
-                amountOfRounds=4;
-            }
-        });
-        MenuItem item5=new MenuItem("5");
-        item5.setOnAction(event -> {
-            if (playable.getValue()) {
-                amountOfRounds=5;
-            }
-        });
-
-        menu2.getItems().addAll(item1, item2, item3, item4, item5);
-
-        Menu menu3=new Menu("Play");
-        MenuItem i1=new MenuItem("Start");
-        i1.setOnAction(event -> playable.set(true));
-        MenuItem i2=new MenuItem("New Game");
-        i2.setOnAction(event -> {
-            resetTheGame();
-        });
-        menu3.getItems().addAll(i1, i2);
-
-        menuBar.getMenus().addAll(menu1, menu2, menu3);
-        grid.getChildren().addAll(menuBar);
+        MainMenu mainMenu = new MainMenu();
     }
 
     private void prepareRoundStack() {
@@ -239,7 +149,7 @@ public class TicTacToe extends Application {
         grid.getChildren().addAll(stackPanePlayerPoints, stackPaneComputerPoints);
     }
 
-    private void resetTheGame() {
+    protected static void resetTheGame() {
         playable.set(false);
     }
 
