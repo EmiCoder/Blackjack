@@ -1,10 +1,25 @@
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +80,17 @@ public class MainMenu {
         MenuItem restartItem = new MenuItem("Restart");
         restartItem.setGraphic(new ImageView("restartItem.png"));
         restartItem.setOnAction(event -> {
-            TicTacToe.restartGame();
+
+            TicTacToe.roundsCounter = 1;
+            TicTacToe.amountOfRounds = 1;
+            TicTacToe.playerPoints= 0;
+            TicTacToe.computerPoints= 0;
+
+            TicTacToe.resetTheGame();
+            TicTacToe.resetTheButtons();
+            TicTacToe.preparePlayerAndComputerPointsStack();
+
+            TicTacToe.startGame(TicTacToe.genearalStage);
         });
         restart.getItems().add(restartItem);
 
