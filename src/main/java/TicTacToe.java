@@ -1,5 +1,7 @@
 
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
@@ -16,10 +18,9 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
+import javafx.util.Duration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 
 public class TicTacToe extends Application {
@@ -56,18 +57,78 @@ public class TicTacToe extends Application {
     private int playerPoints= 0;
     private int computerPoints= 0;
 
+
     protected static SimpleBooleanProperty playable = new SimpleBooleanProperty(false);
+
+
+    private static SimpleBooleanProperty playerMoveExecuted= new SimpleBooleanProperty(false);
+    private SimpleBooleanProperty expectedPlayerMoveState= new SimpleBooleanProperty(true);
+    private BooleanProperty completedProperty = new SimpleBooleanProperty();
+
+    private int rowOfClickedButton;
+    private int columnOfClickedButton;
+
+    protected static Stage genearalStage;
 
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
-    public void start(Stage primaryStage) {
-        primaryStage.setScene(new Scene(setScene(), 600, 600));
-        primaryStage.setTitle("Bird VS Bird");
-        primaryStage.show();
- }
+    public void start(Stage primaryStage) throws InterruptedException{
+        startGame(primaryStage);
+    }
+
+    private void startGame(Stage stage) {
+        try {
+            completedProperty.bind(playerMoveExecuted.isEqualTo(expectedPlayerMoveState));
+            completedProperty.addListener((observable, oldValue, newValue) -> {
+                if (newValue) {
+                    for (Node node : grid.getChildren()) {
+                        if (node instanceof TicTacToeButton) {
+                            if (grid.getRowIndex(node) == rowOfClickedButton && grid.getColumnIndex(node) == columnOfClickedButton) {
+                                ((TicTacToeButton) node).setGraphic(new ImageView(playerImage.getImage()));
+                                ((TicTacToeButton) node).changeStateWithPlayerMove();
+                                if (checkTheResult(3)) {
+                                    playerWon();
+                                } else if (filledBoard()) {
+                                    roundsCounter++;
+                                    resetTheButtons();
+                                } else {
+                                    PauseTransition wait = new PauseTransition(Duration.seconds(2));
+                                    wait.setOnFinished((e) -> {
+                                        wait.playFromStart();
+                                        setTheComputerMove();
+                                        if (checkTheResult(-3)) {
+                                            computerWon();
+                                        }
+                                        wait.stop();
+                                    });
+                                    wait.play();
+                                }
+                            }
+                        }
+                    }
+                    playerMoveExecuted.setValue(false);
+                }
+            });
+
+            stage.setScene(new Scene(setScene(), 600, 600));
+            stage.setTitle("Bird VS Bird");
+            genearalStage = stage;
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void  restartGame() {
+        cleanup();
+    }
+
+    public static void cleanup() {
+    }
 
     private GridPane setScene() {
         grid = prepareGrid();
@@ -151,6 +212,7 @@ public class TicTacToe extends Application {
 
     protected static void resetTheGame() {
         playable.set(false);
+        playerMoveExecuted.setValue(false);
     }
 
     private void resetTheButtons() {
@@ -172,21 +234,10 @@ public class TicTacToe extends Application {
                 button.setStyle("-fx-background-color: #FFC0CB");
                 button.setOnAction(event -> {
                     if (playable.getValue()) {
-                            TicTacToeButton button = (TicTacToeButton) event.getSource();
-                            button.setGraphic(new ImageView(playerImage.getImage()));
-                            button.changeStateWithPlayerMove();
-                            if (checkTheResult(3)) {
-                                playerWon();
-                            }  else if (filledBoard()) {
-                                roundsCounter++;
-                                resetTheButtons();
-                            } else {
-                                setTheComputerMove();
-                                if (checkTheResult(-3)) {
-                                    computerWon();
-                                }
-                            }
-                        }
+                            rowOfClickedButton = GridPane.getRowIndex((TicTacToeButton)event.getSource());
+                            columnOfClickedButton = GridPane.getColumnIndex((TicTacToeButton)event.getSource());
+                                playerMoveExecuted.set(true);
+                    }
                 });
 
                 GridPane.setConstraints(button,j, i);
@@ -199,25 +250,40 @@ public class TicTacToe extends Application {
     }
 
     private void playerWon() {
-            playerPoints++;
-            messagePlayerPoints.setText("Player points: " +String.valueOf(playerPoints));
-            if (roundsCounter == amountOfRounds && playerPoints > computerPoints) {
-                playerFinal();
-                resetTheGame();
-            } else if (roundsCounter == amountOfRounds && playerPoints == computerPoints) {
-                System.out.println("Nobody won :/");
-                resetTheGame();
-            } else {
-                roundsCounter++;
-                resetTheButtons();
-            }
+        playerPoints++;
+        messagePlayerPoints.setText("Player points: " +String.valueOf(playerPoints));
+        if (roundsCounter == amountOfRounds && playerPoints > computerPoints) {
+            resetTheGame();
+            playerFinal();
+            playerMoveExecuted.setValue(false);
+            playable.setValue(false);
+        } else if (roundsCounter == amountOfRounds && playerPoints == computerPoints) {
+            gameFinal();
+            resetTheGame();
+        } else {
+            roundsCounter++;
+            resetTheButtons();
         }
+    }
 
     private void playerFinal() {
         playerFinalStackPane.setTranslateY(300);
         playerFinalStackPane.setTranslateX(30);
 
         ImageView winnerImage = new ImageView("winner.png");
+
+        AudioClip sound = new AudioClip(this.getClass().getResource("winningSound.mp3").toString());
+        sound.play();
+
+        playerFinalStackPane.getChildren().add(winnerImage);
+        grid.getChildren().add(playerFinalStackPane);
+    }
+
+    private void gameFinal() {
+        playerFinalStackPane.setTranslateY(300);
+        playerFinalStackPane.setTranslateX(30);
+
+        ImageView winnerImage = new ImageView("tryAgain.png");
 
         AudioClip sound = new AudioClip(this.getClass().getResource("winningSound.mp3").toString());
         sound.play();
@@ -233,7 +299,7 @@ public class TicTacToe extends Application {
             computerFinal();
             resetTheGame();
         } else if (roundsCounter == amountOfRounds && playerPoints == computerPoints) {
-            System.out.println("Nobody won :/");
+            gameFinal();
             resetTheGame();
         } else {
             roundsCounter++;
@@ -284,31 +350,31 @@ public class TicTacToe extends Application {
 
     public boolean checkTheResult(int expectedResult) {
 
-            for (int i = 0; i < buttons.length; i++) {
-                int tmpResult = 0;
-                for (int j = 0; j < buttons.length; j++) {
-                    tmpResult += buttons[i][j].getValue();
-                }
-                if (tmpResult == expectedResult) {
-                    return true;
-                }
+        for (int i = 0; i < buttons.length; i++) {
+            int tmpResult = 0;
+            for (int j = 0; j < buttons.length; j++) {
+                tmpResult += buttons[i][j].getValue();
             }
-            for (int i = 0; i < buttons.length; i++) {
-                int tmpResult = 0;
-                for (int j = 0; j < buttons.length; j++) {
-                    tmpResult += buttons[j][i].getValue();
-                }
-                if (tmpResult == expectedResult) {
-                    return true;
-                }
-            }
-            if (buttons[0][0].getValue() + buttons[1][1].getValue() +buttons[2][2].getValue() == expectedResult) {
+            if (tmpResult == expectedResult) {
                 return true;
             }
-            if (buttons[0][2].getValue() + buttons[1][1].getValue() +buttons[2][0].getValue() == expectedResult) {
+        }
+        for (int i = 0; i < buttons.length; i++) {
+            int tmpResult = 0;
+            for (int j = 0; j < buttons.length; j++) {
+                tmpResult += buttons[j][i].getValue();
+            }
+            if (tmpResult == expectedResult) {
                 return true;
             }
-            return false;
+        }
+        if (buttons[0][0].getValue() + buttons[1][1].getValue() +buttons[2][2].getValue() == expectedResult) {
+            return true;
+        }
+        if (buttons[0][2].getValue() + buttons[1][1].getValue() +buttons[2][0].getValue() == expectedResult) {
+            return true;
+        }
+        return false;
     }
 
 

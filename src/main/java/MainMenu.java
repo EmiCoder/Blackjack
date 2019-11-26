@@ -1,8 +1,14 @@
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class MainMenu {
 
@@ -12,17 +18,18 @@ public class MainMenu {
         menuBar.setMinHeight(50);
         menuBar.setTranslateX(-5);
         menuBar.setTranslateY(-20);
-        menuBar.setStyle("-fx-background-color: #8B0000; -fx-text-fill: #FFFFFF");
+        menuBar.setStyle("-fx-background-color: #8B0000");
         menuBar.setPadding(new Insets(15));
 
         Menu play = new Menu("PLAY");
                 play.setGraphic(new ImageView("playButton.png"));
                 MenuItem start = new MenuItem("Start");
                 start.setGraphic(new ImageView("playItem.png"));
+                play.getItems().add(start);
                 start.setOnAction(event -> {
                     TicTacToe.playable.set(true);
                 });
-                play.getItems().add(start);
+
 
         Menu chooseCharacter = new Menu("CHARACTERS");
                 chooseCharacter.setGraphic(new ImageView("chuckS2.png"));
@@ -57,10 +64,14 @@ public class MainMenu {
         restart.setGraphic(new ImageView("restart.png"));
         MenuItem restartItem = new MenuItem("Restart");
         restartItem.setGraphic(new ImageView("restartItem.png"));
-        restartItem.setOnAction(event -> TicTacToe.resetTheGame());
+        restartItem.setOnAction(event -> {
+            TicTacToe.restartGame();
+        });
         restart.getItems().add(restartItem);
 
         menuBar.getMenus().addAll(play, chooseCharacter, rounds, restart);
         TicTacToe.grid.getChildren().add(menuBar);
     }
+
+
 }
