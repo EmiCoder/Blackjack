@@ -19,6 +19,9 @@ public class CharactersList {
         list.add(new Character("Matilda", "matildaS.png"));
         list.add(new Character("Bomb", "bombS2.png"));
         list.add(new Character("Chuck", "chuckS2.png"));
+        list.add(new Character("Red Girl", "redGirl.png"));
+        list.add(new Character("Yellow", "yellow.png"));
+        list.add(new Character("Blue", "blue.png"));
         return list;
     }
 }

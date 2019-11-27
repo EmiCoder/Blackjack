@@ -1,34 +1,16 @@
-import javafx.animation.PauseTransition;
-import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+
 import javafx.geometry.Insets;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
-import javafx.scene.layout.StackPane;
-import javafx.scene.text.Text;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.stream.IntStream;
 
 public class MainMenu {
 
     public MainMenu() {
-        MenuBar menuBar=new MenuBar();
+        MenuBar menuBar = new MenuBar();
         menuBar.setMinWidth(600);
         menuBar.setMinHeight(50);
         menuBar.setTranslateX(-5);
@@ -48,55 +30,65 @@ public class MainMenu {
 
         Menu chooseCharacter = new Menu("CHARACTERS");
                 chooseCharacter.setGraphic(new ImageView("chuckS2.png"));
+                new CharactersList().getList().stream().forEach(e -> {
+                                                MenuItem item = new MenuItem(e.getName());
+                                                item.setGraphic(new ImageView(e.getImage()));
+                                                item.setOnAction(event -> {
+                                                    if (TicTacToe.playable.getValue()) {
+                                                        TicTacToe.playerImage = new ImageView(e.getImage());
+                                                    }
+                                                });
+                                                chooseCharacter.getItems().add(item);
+                                            });
 
-                CharactersList list = new CharactersList();
-                for (Character character : list.getList()) {
-                    MenuItem item = new MenuItem(character.getName());
-                    item.setGraphic(new ImageView(character.getImage()));
-                    item.setOnAction(event -> {
-                        if (TicTacToe.playable.getValue()) {
-                            TicTacToe.playerImage = new ImageView(character.getImage());
-                        }
-                    });
-                    chooseCharacter.getItems().add(item);
-                }
 
         Menu rounds = new Menu("ROUNDS");
                 rounds.setGraphic(new ImageView("roundS.png"));
-                for (int i = 0; i < 5; i++) {
-                    int tmp = i;
-                    MenuItem item = new MenuItem(String.valueOf(i + 1));
-                    item.setGraphic(new ImageView("roundItem.png"));
-                    item.setOnAction(event -> {
-                        if (TicTacToe.playable.getValue()) {
-                            TicTacToe.amountOfRounds = tmp + 1;
-                        }
-                    });
-                    rounds.getItems().add(item);
-                }
+                IntStream.range(0,TicTacToe.suggestedAmountOfRounds).forEach(e -> {
+                                            MenuItem item = new MenuItem(String.valueOf(e + 1));
+                                            item.setGraphic(new ImageView("roundItem.png"));
+                                            item.setOnAction(event -> {
+                                                if (TicTacToe.playable.getValue()) {
+                                                    TicTacToe.amountOfRounds = e + 1;
+                                                }
+                                            });
+                                            rounds.getItems().add(item);
+                                        });
 
         Menu restart = new Menu("RESTART");
-        restart.setGraphic(new ImageView("restart.png"));
-        MenuItem restartItem = new MenuItem("Restart");
-        restartItem.setGraphic(new ImageView("restartItem.png"));
-        restartItem.setOnAction(event -> {
+                restart.setGraphic(new ImageView("restart.png"));
+                MenuItem restartItem = new MenuItem("Restart");
+                restartItem.setGraphic(new ImageView("restartItem.png"));
+                restartItem.setOnAction(event -> {
 
-            TicTacToe.roundsCounter = 1;
-            TicTacToe.amountOfRounds = 1;
-            TicTacToe.playerPoints= 0;
-            TicTacToe.computerPoints= 0;
+                    if (TicTacToe.playerWinner) {
+                        TicTacToe.grid.getChildren().remove(TicTacToe.playerFinalStackPane);
+                    } else if (TicTacToe.computerWinner) {
+                        TicTacToe.grid.getChildren().remove(TicTacToe.computerFinalStackPane);
+                    } else {
+                        TicTacToe.grid.getChildren().remove(TicTacToe.gameFinalStackPane);
+                    }
 
-            TicTacToe.resetTheGame();
-            TicTacToe.resetTheButtons();
-            TicTacToe.preparePlayerAndComputerPointsStack();
+                    TicTacToe.messagePlayerPoints.setText("Player: " + String.valueOf(TicTacToe.playerPoints));
+                    TicTacToe.messageComputerPoints.setText("Computer: " + String.valueOf(TicTacToe.computerPoints));
+                    TicTacToe.messageRound.setText("Round: " + String.valueOf(TicTacToe.amountOfRounds));
 
-            TicTacToe.startGame(TicTacToe.genearalStage);
-        });
-        restart.getItems().add(restartItem);
+                    TicTacToe.resetTheButtons();
 
-        menuBar.getMenus().addAll(play, chooseCharacter, rounds, restart);
-        TicTacToe.grid.getChildren().add(menuBar);
+                    TicTacToe.playable.set(true);
+                    TicTacToe.playerMoveExecuted.setValue(false);
+                    TicTacToe.playerImage = new ImageView("red.png");
+                    TicTacToe.playerWinner = false;
+                    TicTacToe.computerWinner = false;
+                    TicTacToe.prepareRoundStack();
+                    TicTacToe.preparePlayerAndComputerPointsStack();
+
+                    TicTacToe.startGame(TicTacToe.genearalStage);
+                });
+                restart.getItems().add(restartItem);
+
+                menuBar.getMenus().addAll(play, chooseCharacter, rounds, restart);
+                TicTacToe.grid.getChildren().add(menuBar);
     }
-
 
 }

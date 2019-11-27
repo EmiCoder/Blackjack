@@ -18,7 +18,6 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.util.Duration;
-
 import java.util.*;
 
 
@@ -33,13 +32,14 @@ public class TicTacToe extends Application {
 
     protected static Text messageRound= new Text();
     protected static Text messagePlayerPoints = new Text();
-    protected static Text messageComputerPlayerPoints = new Text();
+    protected static Text messageComputerPoints= new Text();
 
     protected static StackPane stackPaneRound= new StackPane();
     protected static StackPane stackPanePlayerPoints = new StackPane();
     protected static StackPane stackPaneComputerPoints = new StackPane();
     protected static StackPane playerFinalStackPane = new StackPane();
     protected static StackPane computerFinalStackPane = new StackPane();
+    protected static StackPane gameFinalStackPane = new StackPane();
 
     protected static GridPane grid;
 
@@ -50,15 +50,14 @@ public class TicTacToe extends Application {
     private static final int endOfRows = 4;
     private static final int startOfColumns = 2;
     private static final int endOfColumns = 5;
+    protected static final int suggestedAmountOfRounds = 5;
 
     protected static int roundsCounter = 1;
     protected static int amountOfRounds = 1;
     protected static int playerPoints= 0;
     protected static int computerPoints= 0;
 
-
     protected static SimpleBooleanProperty playable = new SimpleBooleanProperty(false);
-
 
     protected static SimpleBooleanProperty playerMoveExecuted= new SimpleBooleanProperty(false);
     private static SimpleBooleanProperty expectedPlayerMoveState= new SimpleBooleanProperty(true);
@@ -67,11 +66,16 @@ public class TicTacToe extends Application {
     private static int rowOfClickedButton;
     private static int columnOfClickedButton;
 
+    protected static boolean playerWinner = false;
+    protected static boolean computerWinner = false;
+
     protected static Stage genearalStage;
+
 
     public static void main(String[] args) {
         launch(args);
     }
+
 
     @Override
     public void start(Stage primaryStage) throws InterruptedException{
@@ -90,9 +94,12 @@ public class TicTacToe extends Application {
                                 ((TicTacToeButton) node).changeStateWithPlayerMove();
                                 if (checkTheResult(3)) {
                                     playerWon();
-                                } else if (filledBoard()) {
+                                } else if (filledBoard() && roundsCounter != amountOfRounds) {
                                     roundsCounter++;
                                     resetTheButtons();
+                                } else if (filledBoard() && roundsCounter == amountOfRounds) {
+                                    gameFinal();
+                                    resetTheGame();
                                 } else {
                                     PauseTransition wait = new PauseTransition(Duration.seconds(2));
                                     wait.setOnFinished((e) -> {
@@ -122,8 +129,6 @@ public class TicTacToe extends Application {
         }
     }
 
-
-
     protected static GridPane setScene() {
         grid = prepareGrid();
         fillTheGridWithRowsAndColumn();
@@ -131,8 +136,6 @@ public class TicTacToe extends Application {
         prepareMenuBar();
         prepareRoundStack();
         preparePlayerAndComputerPointsStack();
-
-//        grid.setGridLinesVisible(true);
         return grid;
     }
 
@@ -168,6 +171,7 @@ public class TicTacToe extends Application {
 
     protected static void prepareRoundStack() {
         stackPaneRound.setTranslateY(70);
+
         messageRound.setText("Round " + roundsCounter);
         messageRound.setTextAlignment(TextAlignment.CENTER);
         messageRound.setFill(Color.WHITE);
@@ -175,8 +179,8 @@ public class TicTacToe extends Application {
         Rectangle rectangle = new Rectangle(145, 40);
         rectangle.setFill(Color.DARKRED);
         rectangle.setTranslateX(10);
-        stackPaneRound.getChildren().addAll(rectangle, messageRound);
 
+        stackPaneRound.getChildren().addAll(rectangle, messageRound);
         grid.getChildren().add(stackPaneRound);
     }
 
@@ -194,13 +198,13 @@ public class TicTacToe extends Application {
         stackPaneComputerPoints.setTranslateY(125);
         stackPaneComputerPoints.setTranslateX(435);
 
-        messageComputerPlayerPoints.setText("Computer points: " + String.valueOf(computerPoints));
-        messageComputerPlayerPoints.setFill(Color.WHITE);
+        messageComputerPoints.setText("Computer points: " + String.valueOf(computerPoints));
+        messageComputerPoints.setFill(Color.WHITE);
 
         Rectangle computerRectangle = new Rectangle(145, 40);
         computerRectangle.setFill(Color.DARKRED);
 
-        stackPaneComputerPoints.getChildren().addAll(computerRectangle, messageComputerPlayerPoints);
+        stackPaneComputerPoints.getChildren().addAll(computerRectangle, messageComputerPoints);
         grid.getChildren().addAll(stackPanePlayerPoints, stackPaneComputerPoints);
     }
 
@@ -261,39 +265,28 @@ public class TicTacToe extends Application {
     }
 
     private static void playerFinal() {
+        playerWinner = true;
         playerFinalStackPane.setTranslateY(300);
         playerFinalStackPane.setTranslateX(30);
 
         ImageView winnerImage = new ImageView("winner.png");
 
-//        AudioClip sound = new AudioClip(this.getClass().getResource("winningSound.mp3").toString());
-        AudioClip sound = new AudioClip("winningSound.mp3");
+        AudioClip sound = new AudioClip(TicTacToe.class.getClassLoader().getResource("winningSound.mp3").toString());
         sound.play();
 
         playerFinalStackPane.getChildren().add(winnerImage);
         grid.getChildren().add(playerFinalStackPane);
-    }
-
-    private static void gameFinal() {
-        playerFinalStackPane.setTranslateY(300);
-        playerFinalStackPane.setTranslateX(30);
-
-        ImageView winnerImage = new ImageView("tryAgain.png");
-
-//        AudioClip sound = new AudioClip(this.getClass().getResource("winningSound.mp3").toString());
-        AudioClip sound = new AudioClip("winningSound.mp3");
-        sound.play();
-
-        playerFinalStackPane.getChildren().add(winnerImage);
-        grid.getChildren().add(playerFinalStackPane);
+        setNewSettings();
     }
 
     private static void computerWon() {
         computerPoints++;
-        messageComputerPlayerPoints.setText("Computer points: " + String.valueOf(computerPoints));
+        messageComputerPoints.setText("Computer points: " + String.valueOf(computerPoints));
         if (roundsCounter == amountOfRounds && playerPoints < computerPoints) {
-            computerFinal();
             resetTheGame();
+            computerFinal();
+            playerMoveExecuted.setValue(false);
+            playable.setValue(false);
         } else if (roundsCounter == amountOfRounds && playerPoints == computerPoints) {
             gameFinal();
             resetTheGame();
@@ -304,17 +297,42 @@ public class TicTacToe extends Application {
     }
 
     private static void computerFinal() {
+
+        computerWinner = true;
+
         computerFinalStackPane.setTranslateY(300);
         computerFinalStackPane.setTranslateX(30);
 
         ImageView winnerImage = new ImageView("winnerComputer.png");
+        AudioClip sound = new AudioClip(TicTacToe.class.getClassLoader().getResource("booSound.mp3").toString());
 
-//        AudioClip sound = new AudioClip(this.getClass().getResource("booSound.mp3").toString());
-        AudioClip sound = new AudioClip("booSound.mp3");
         sound.play();
 
         computerFinalStackPane.getChildren().add(winnerImage);
         grid.getChildren().add(computerFinalStackPane);
+        setNewSettings();
+    }
+
+    private static void gameFinal() {
+
+        gameFinalStackPane.setTranslateY(300);
+        gameFinalStackPane.setTranslateX(30);
+
+        ImageView tryAgainImage = new ImageView("tryAgain.png");
+
+        AudioClip sound = new AudioClip(TicTacToe.class.getClassLoader().getResource("winningSound.mp3").toString());
+        sound.play();
+
+        gameFinalStackPane.getChildren().add(tryAgainImage);
+        grid.getChildren().add(gameFinalStackPane);
+        setNewSettings();
+    }
+
+    private static void setNewSettings() {
+        TicTacToe.playerPoints = 0;
+        TicTacToe.computerPoints = 0;
+        TicTacToe.roundsCounter = 1;
+        TicTacToe.amountOfRounds = 1;
     }
 
     private static void setTheComputerMove() {
