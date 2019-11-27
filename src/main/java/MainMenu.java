@@ -25,6 +25,7 @@ public class MainMenu {
                 play.getItems().add(start);
                 start.setOnAction(event -> {
                     TicTacToe.playable.set(true);
+                    TicTacToe.playerHasMoved = true;
                 });
 
 
@@ -73,17 +74,21 @@ public class MainMenu {
                     TicTacToe.messageComputerPoints.setText("Computer: " + String.valueOf(TicTacToe.computerPoints));
                     TicTacToe.messageRound.setText("Round: " + String.valueOf(TicTacToe.amountOfRounds));
 
-                    TicTacToe.resetTheButtons();
 
-                    TicTacToe.playable.set(true);
+                    TicTacToe.resetTheButtons();
+                    TicTacToe.playable.setValue(true);
                     TicTacToe.playerMoveExecuted.setValue(false);
                     TicTacToe.playerImage = new ImageView("red.png");
                     TicTacToe.playerWinner = false;
                     TicTacToe.computerWinner = false;
+                    TicTacToe.playerHasMoved = true;
+
                     TicTacToe.prepareRoundStack();
                     TicTacToe.preparePlayerAndComputerPointsStack();
 
                     TicTacToe.startGame(TicTacToe.genearalStage);
+                    System.out.println(TicTacToe.playable);
+
                 });
                 restart.getItems().add(restartItem);
 

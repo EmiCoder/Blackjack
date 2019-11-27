@@ -71,6 +71,9 @@ public class TicTacToe extends Application {
 
     protected static Stage genearalStage;
 
+    protected static boolean playerHasMoved = false;
+
+
 
     public static void main(String[] args) {
         launch(args);
@@ -94,6 +97,9 @@ public class TicTacToe extends Application {
                                 ((TicTacToeButton) node).changeStateWithPlayerMove();
                                 if (checkTheResult(3)) {
                                     playerWon();
+                                    if (playerWinner) {
+                                        break;
+                                    }
                                 } else if (filledBoard() && roundsCounter != amountOfRounds) {
                                     roundsCounter++;
                                     resetTheButtons();
@@ -101,7 +107,7 @@ public class TicTacToe extends Application {
                                     gameFinal();
                                     resetTheGame();
                                 } else {
-                                    PauseTransition wait = new PauseTransition(Duration.seconds(2));
+                                    PauseTransition wait = new PauseTransition(Duration.seconds(1));
                                     wait.setOnFinished((e) -> {
                                         wait.playFromStart();
                                         setTheComputerMove();
@@ -118,6 +124,8 @@ public class TicTacToe extends Application {
                     playerMoveExecuted.setValue(false);
                 }
             });
+
+
 
             stage.setScene(new Scene(setScene(), 600, 600));
             stage.setTitle("Bird VS Bird");
@@ -231,10 +239,11 @@ public class TicTacToe extends Application {
                 button.setPrefSize(70, 70);
                 button.setStyle("-fx-background-color: #FFC0CB");
                 button.setOnAction(event -> {
-                    if (playable.getValue()) {
+                    if (playable.getValue() && playerHasMoved) {
                         rowOfClickedButton = GridPane.getRowIndex((TicTacToeButton)event.getSource());
                         columnOfClickedButton = GridPane.getColumnIndex((TicTacToeButton)event.getSource());
                         playerMoveExecuted.set(true);
+                        playerHasMoved = false;
                     }
                 });
 
@@ -251,10 +260,11 @@ public class TicTacToe extends Application {
         playerPoints++;
         messagePlayerPoints.setText("Player points: " +String.valueOf(playerPoints));
         if (roundsCounter == amountOfRounds && playerPoints > computerPoints) {
+            playerWinner = true;
             resetTheGame();
-            playerFinal();
             playerMoveExecuted.setValue(false);
             playable.setValue(false);
+            playerFinal();
         } else if (roundsCounter == amountOfRounds && playerPoints == computerPoints) {
             gameFinal();
             resetTheGame();
@@ -265,7 +275,6 @@ public class TicTacToe extends Application {
     }
 
     private static void playerFinal() {
-        playerWinner = true;
         playerFinalStackPane.setTranslateY(300);
         playerFinalStackPane.setTranslateX(30);
 
@@ -349,6 +358,7 @@ public class TicTacToe extends Application {
         TicTacToeButton button = list.get(nodeGenerator.nextInt(list.size()));
         button.setGraphic(new ImageView("pig.png"));
         button.changeStateWithComputerMove();
+        playerHasMoved = true;
     }
 
     private static boolean filledBoard() {
