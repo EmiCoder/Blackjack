@@ -83,12 +83,7 @@ public class MainMenu {
                     TicTacToe.computerWinner = false;
                     TicTacToe.playerHasMoved = true;
 
-                    TicTacToe.prepareRoundStack();
-                    TicTacToe.preparePlayerAndComputerPointsStack();
-
                     TicTacToe.startGame(TicTacToe.genearalStage);
-                    System.out.println(TicTacToe.playable);
-
                 });
                 restart.getItems().add(restartItem);
 

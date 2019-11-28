@@ -188,7 +188,10 @@ public class TicTacToe extends Application {
         rectangle.setFill(Color.DARKRED);
         rectangle.setTranslateX(10);
 
-        stackPaneRound.getChildren().addAll(rectangle, messageRound);
+        if (stackPaneRound.getChildren().isEmpty()) {
+            stackPaneRound.getChildren().addAll(rectangle, messageRound);
+        }
+
         grid.getChildren().add(stackPaneRound);
     }
 
@@ -201,7 +204,10 @@ public class TicTacToe extends Application {
 
         Rectangle playerRectangle = new Rectangle(145, 40);
         playerRectangle.setFill(Color.DARKRED);
-        stackPanePlayerPoints.getChildren().addAll(playerRectangle, messagePlayerPoints);
+
+        if (stackPanePlayerPoints.getChildren().isEmpty()) {
+            stackPanePlayerPoints.getChildren().addAll(playerRectangle, messagePlayerPoints);
+        }
 
         stackPaneComputerPoints.setTranslateY(125);
         stackPaneComputerPoints.setTranslateX(435);
@@ -212,7 +218,10 @@ public class TicTacToe extends Application {
         Rectangle computerRectangle = new Rectangle(145, 40);
         computerRectangle.setFill(Color.DARKRED);
 
-        stackPaneComputerPoints.getChildren().addAll(computerRectangle, messageComputerPoints);
+        if (stackPaneComputerPoints.getChildren().isEmpty()) {
+            stackPaneComputerPoints.getChildren().addAll(computerRectangle, messageComputerPoints);
+        }
+
         grid.getChildren().addAll(stackPanePlayerPoints, stackPaneComputerPoints);
     }
 
